@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat Conversations{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Chat Conversations</h1>
+    <a href="{% url 'chatbot:create_conversation' %}" class="btn btn-primary">
+        <span class="feature-icon">➕</span>New Conversation
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <a href="{% url 'chatbot:quick_chat' %}" class="btn btn-success btn-lg w-100">
+            <span class="feature-icon">⚡</span>Quick Chat
+        </a>
+    </div>
+</div>
+
+{% if conversations %}
+    <div class="list-group">
+        {% for conversation in conversations %}
+        <a href="{% url 'chatbot:conversation_detail' conversation.id %}" class="list-group-item list-group-item-action">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-1">{{ conversation.title }}</h5>
+                <small>{{ conversation.updated_at|date:"M d, Y H:i" }}</small>
+            </div>
+            <p class="mb-1">
+                {% with last_message=conversation.messages.last %}
+                    {% if last_message %}
+                        <strong>{{ last_message.sender|title }}:</strong> {{ last_message.content|truncatewords:15 }}
+                    {% else %}
+                        No messages yet
+                    {% endif %}
+                {% endwith %}
+            </p>
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ conversation.messages.count }} messages</small>
+                <a href="{% url 'chatbot:delete_conversation' conversation.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <h3>No conversations yet</h3>
+        <p>Start a new conversation to begin chatting with the AI tutor.</p>
+        <a href="{% url 'chatbot:create_conversation' %}" class="btn btn-primary">Start Conversation</a>
+    </div>
+{% endif %}
+{% endblock %}

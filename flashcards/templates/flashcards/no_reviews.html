@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}No Reviews Available{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <h1>No Reviews Available</h1>
+        <p class="lead">Great job! You've completed all your flashcard reviews for now.</p>
+        <p>Based on the spaced repetition algorithm, your next review will be scheduled appropriately.</p>
+        
+        <div class="mt-4">
+            <a href="{% url 'flashcards:list' %}" class="btn btn-primary">Back to Flashcards</a>
+            <a href="{% url 'flashcards:create' %}" class="btn btn-secondary">Create New Flashcard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Flashcards{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h1 class="text-center mb-4">Flashcard Review</h1>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Question</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ flashcard.question }}</p>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>Answer</h5>
+                <button id="reveal-btn" class="btn btn-outline-primary btn-sm">Reveal Answer</button>
+            </div>
+            <div class="card-body" id="answer-card" style="display: none;">
+                <p class="card-text">{{ flashcard.answer }}</p>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <h5>How well did you know this?</h5>
+            <form id="review-form" method="post" action="{% url 'flashcards:process_review' flashcard.id %}">
+                {% csrf_token %}
+                <div class="btn-group" role="group">
+                    <button type="submit" name="quality" value="0" class="btn btn-danger btn-lg">Again</button>
+                    <button type="submit" name="quality" value="1" class="btn btn-warning btn-lg">Hard</button>
+                    <button type="submit" name="quality" value="2" class="btn btn-success btn-lg">Good</button>
+                    <button type="submit" name="quality" value="3" class="btn btn-primary btn-lg">Easy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('reveal-btn').addEventListener('click', function() {
+        document.getElementById('answer-card').style.display = 'block';
+        this.style.display = 'none';
+    });
+</script>
+{% endblock %}

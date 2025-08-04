@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ conversation.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ conversation.title }}</h1>
+    <a href="{% url 'chatbot:conversations' %}" class="btn btn-secondary">Back to Conversations</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body" id="chat-messages" style="height: 400px; overflow-y: auto;">
+        {% for message in messages %}
+            {% if message.sender == 'user' %}
+                <div class="d-flex justify-content-end mb-3">
+                    <div class="card bg-primary text-white" style="max-width: 80%;">
+                        <div class="card-body">
+                            <p class="mb-0">{{ message.content }}</p>
+                            <small class="text-white-50">{{ message.timestamp|date:"H:i" }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="d-flex justify-content-start mb-3">
+                    <div class="card bg-light" style="max-width: 80%;">
+                        <div class="card-body">
+                            <p class="mb-0">{{ message.content }}</p>
+                            <small class="text-muted">{{ message.timestamp|date:"H:i" }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<form method="post" id="message-form">
+    {% csrf_token %}
+    <div class="input-group">
+        {{ form.content }}
+        <button class="btn btn-primary" type="submit">Send</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Scroll to bottom of chat messages
+    const chatMessages = document.getElementById('chat-messages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Handle form submission with AJAX
+    document.getElementById('message-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const content = formData.get('content');
+        
+        if (!content.trim()) return;
+        
+        // Add user message to chat immediately
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.className = 'd-flex justify-content-end mb-3';
+        userMessageDiv.innerHTML = `
+            <div class="card bg-primary text-white" style="max-width: 80%;">
+                <div class="card-body">
+                    <p class="mb-0">${content}</p>
+                    <small class="text-white-50">Just now</small>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(userMessageDiv);
+        
+        // Clear input
+        document.getElementById('id_content').value = '';
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Send request to server
+        fetch('{% url "chatbot:conversation_detail" conversation.id %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Add bot response to chat
+                const botMessageDiv = document.createElement('div');
+                botMessageDiv.className = 'd-flex justify-content-start mb-3';
+                botMessageDiv.innerHTML = `
+                    <div class="card bg-light" style="max-width: 80%;">
+                        <div class="card-body">
+                            <p class="mb-0">${data.bot_response}</p>
+                            <small class="text-muted">Just now</small>
+                        </div>
+                    </div>
+                `;
+                chatMessages.appendChild(botMessageDiv);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+</script>
+{% endblock %}

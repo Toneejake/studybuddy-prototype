@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Quick Chat{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Quick Chat</h1>
+    <a href="{% url 'chatbot:conversations' %}" class="btn btn-secondary">Full Conversations</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body" id="chat-messages" style="height: 400px; overflow-y: auto;">
+        {% if question and response %}
+            <div class="d-flex justify-content-end mb-3">
+                <div class="card bg-primary text-white" style="max-width: 80%;">
+                    <div class="card-body">
+                        <p class="mb-0">{{ question }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-start mb-3">
+                <div class="card bg-light" style="max-width: 80%;">
+                    <div class="card-body">
+                        <p class="mb-0">{{ response }}</p>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-5">
+                <p>Ask a question to get started with the AI tutor.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<form method="post" id="quick-chat-form">
+    {% csrf_token %}
+    <div class="input-group">
+        <input type="text" class="form-control" id="question" name="question" placeholder="Ask a question..." required>
+        <button class="btn btn-primary" type="submit">Send</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Scroll to bottom of chat messages
+    const chatMessages = document.getElementById('chat-messages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Handle form submission with AJAX
+    document.getElementById('quick-chat-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const question = formData.get('question');
+        
+        if (!question.trim()) return;
+        
+        // Add user question to chat immediately
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.className = 'd-flex justify-content-end mb-3';
+        userMessageDiv.innerHTML = `
+            <div class="card bg-primary text-white" style="max-width: 80%;">
+                <div class="card-body">
+                    <p class="mb-0">${question}</p>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(userMessageDiv);
+        
+        // Clear input
+        document.getElementById('question').value = '';
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Show loading indicator
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'd-flex justify-content-start mb-3';
+        loadingDiv.innerHTML = `
+            <div class="card bg-light" style="max-width: 80%;">
+                <div class="card-body">
+                    <p class="mb-0">Thinking...</p>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(loadingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Send request to server
+        fetch('{% url "chatbot:quick_chat" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Remove loading indicator
+            chatMessages.removeChild(loadingDiv);
+            
+            if (data.status === 'success') {
+                // Add bot response to chat
+                const botMessageDiv = document.createElement('div');
+                botMessageDiv.className = 'd-flex justify-content-start mb-3';
+                botMessageDiv.innerHTML = `
+                    <div class="card bg-light" style="max-width: 80%;">
+                        <div class="card-body">
+                            <p class="mb-0">${data.response}</p>
+                        </div>
+                    </div>
+                `;
+                chatMessages.appendChild(botMessageDiv);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        })
+        .catch(error => {
+            // Remove loading indicator
+            chatMessages.removeChild(loadingDiv);
+            
+            // Show error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'd-flex justify-content-start mb-3';
+            errorDiv.innerHTML = `
+                <div class="card bg-light" style="max-width: 80%;">
+                    <div class="card-body">
+                        <p class="mb-0 text-danger">Sorry, there was an error processing your request.</p>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(errorDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            console.error('Error:', error);
+        });
+    });
+</script>
+{% endblock %}

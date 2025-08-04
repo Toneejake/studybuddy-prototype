@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}My Flashcards{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Flashcards</h1>
+    <a href="{% url 'flashcards:create' %}" class="btn btn-primary">
+        <span class="feature-icon">➕</span>Create New Flashcard
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <a href="{% url 'flashcards:review' %}" class="btn btn-success btn-lg w-100">
+            <span class="feature-icon">🧠</span>Start Review Session
+        </a>
+    </div>
+</div>
+
+{% if flashcards %}
+    <div class="row">
+        {% for flashcard in flashcards %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ flashcard.question|truncatewords:10 }}</h5>
+                    <p class="card-text">{{ flashcard.answer|truncatewords:15 }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            Next review: {{ flashcard.next_review_date|date:"M d, Y" }}
+                        </small>
+                        <div>
+                            <a href="{% url 'flashcards:edit' flashcard.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a href="{% url 'flashcards:delete' flashcard.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <h3>No flashcards yet</h3>
+        <p>Create your first flashcard to get started with spaced repetition learning.</p>
+        <a href="{% url 'flashcards:create' %}" class="btn btn-primary">Create Flashcard</a>
+    </div>
+{% endif %}
+{% endblock %}
