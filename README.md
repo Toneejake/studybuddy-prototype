@@ -88,17 +88,8 @@ studybuddy/
 2. Create flashcards with questions and answers
 3. Review flashcards when they're due
 4. Use the chatbot for quick questions or extended conversations
-5. Access admin interface at `http://127.0.0.1:8000/admin/` (if superuser created)
+5. Access admin interface at `http://127.0.0.1:8000/admin/`
 
-## GitHub Value
-
-This project demonstrates:
-- Practical application of AI concepts (spaced repetition, NLP)
-- Django web development skills
-- Database design with relationships
-- RESTful API principles
-- Frontend development with Bootstrap
-- Software engineering best practices
 
 ## Future Enhancements
 
